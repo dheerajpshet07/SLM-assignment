@@ -1,0 +1,17 @@
+# Core
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4
+joblib>=1.3
+matplotlib>=3.8
+
+# SLM fine-tuning stack
+# torch is installed separately (see README "Setup") because the correct
+# wheel depends on the local CUDA toolkit/driver — e.g.:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+transformers>=4.46
+peft>=0.13
+accelerate>=1.0
+datasets>=3.0
+sentencepiece>=0.2
+huggingface_hub>=0.25

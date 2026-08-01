@@ -1,0 +1,162 @@
+{
+  "splits": {
+    "train": {
+      "split": "train",
+      "rows": 22143,
+      "servers": 1448,
+      "label_counts": {
+        "Read": 14084,
+        "Financial": 111,
+        "Execute": 1175,
+        "Write": 5433,
+        "Destructive": 1264,
+        "Other": 76
+      },
+      "missing_name": 0,
+      "missing_description": 316,
+      "empty_schema": 3617,
+      "unparsable_schema": 0,
+      "duplicate_record_ids": 0,
+      "exact_name_description_duplicates": 941,
+      "description_char_length": {
+        "min": 0,
+        "max": 36581,
+        "mean": 191.5
+      },
+      "input_text_char_length": {
+        "min": 60,
+        "max": 3097,
+        "mean": 396.2
+      }
+    },
+    "validation": {
+      "split": "validation",
+      "rows": 4429,
+      "servers": 292,
+      "label_counts": {
+        "Read": 2817,
+        "Write": 1087,
+        "Destructive": 253,
+        "Execute": 235,
+        "Financial": 22,
+        "Other": 15
+      },
+      "missing_name": 0,
+      "missing_description": 6,
+      "empty_schema": 737,
+      "unparsable_schema": 0,
+      "duplicate_record_ids": 0,
+      "exact_name_description_duplicates": 44,
+      "description_char_length": {
+        "min": 0,
+        "max": 9471,
+        "mean": 228.7
+      },
+      "input_text_char_length": {
+        "min": 75,
+        "max": 2665,
+        "mean": 457.8
+      }
+    },
+    "test": {
+      "split": "test",
+      "rows": 4428,
+      "servers": 291,
+      "label_counts": {},
+      "missing_name": 0,
+      "missing_description": 42,
+      "empty_schema": 743,
+      "unparsable_schema": 0,
+      "duplicate_record_ids": 0,
+      "exact_name_description_duplicates": 99,
+      "description_char_length": {
+        "min": 0,
+        "max": 11278,
+        "mean": 176.3
+      },
+      "input_text_char_length": {
+        "min": 67,
+        "max": 2725,
+        "mean": 380.9
+      }
+    }
+  },
+  "cross_split_leakage": {
+    "server_slug_overlap": {
+      "train_vs_validation": 0,
+      "train_vs_test": 0,
+      "validation_vs_test": 0
+    },
+    "near_duplicate_content_overlap": {
+      "train_vs_validation": 315,
+      "train_vs_test": 270,
+      "validation_vs_test": 56
+    }
+  },
+  "servers_public_label_word_scan": {
+    "rows_scanned": 2031,
+    "rows_with_label_word_in_text": 172,
+    "examples": [
+      {
+        "slug": "aeo-scanner",
+        "matched_terms": [
+          "read"
+        ]
+      },
+      {
+        "slug": "agentclear-ai-mcp-server",
+        "matched_terms": [
+          "financial"
+        ]
+      },
+      {
+        "slug": "agentpmt-agentic-marketplace",
+        "matched_terms": [
+          "execute"
+        ]
+      },
+      {
+        "slug": "agonzalez-prueba-mcp-seeker",
+        "matched_terms": [
+          "read"
+        ]
+      },
+      {
+        "slug": "ai-imboard-dossier",
+        "matched_terms": [
+          "execute"
+        ]
+      },
+      {
+        "slug": "ai-readme",
+        "matched_terms": [
+          "read"
+        ]
+      },
+      {
+        "slug": "aiamindennapokban-wise-mcp",
+        "matched_terms": [
+          "financial"
+        ]
+      },
+      {
+        "slug": "aipaygen",
+        "matched_terms": [
+          "write"
+        ]
+      },
+      {
+        "slug": "aleatoric-causal-mcp",
+        "matched_terms": [
+          "financial"
+        ]
+      },
+      {
+        "slug": "alxspiker-windows-command-line-mcp-server",
+        "matched_terms": [
+          "execute"
+        ]
+      }
+    ]
+  }
+}

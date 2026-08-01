@@ -1,0 +1,43 @@
+{
+  "source_tool_rows": 31000,
+  "source_server_rows": 2031,
+  "labels": [
+    "Destructive",
+    "Execute",
+    "Financial",
+    "Other",
+    "Read",
+    "Write"
+  ],
+  "split_method": "StratifiedGroupKFold by server_slug; deterministic seeds 20260714 and 20260715",
+  "splits": {
+    "train": {
+      "rows": 22143,
+      "servers": 1448,
+      "label_counts": {
+        "Read": 14084,
+        "Financial": 111,
+        "Execute": 1175,
+        "Write": 5433,
+        "Destructive": 1264,
+        "Other": 76
+      }
+    },
+    "validation": {
+      "rows": 4429,
+      "servers": 292,
+      "label_counts": {
+        "Read": 2817,
+        "Write": 1087,
+        "Destructive": 253,
+        "Execute": 235,
+        "Financial": 22,
+        "Other": 15
+      }
+    },
+    "test": {
+      "rows": 4428,
+      "servers": 291
+    }
+  }
+}

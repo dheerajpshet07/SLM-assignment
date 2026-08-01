@@ -1,0 +1,14 @@
+.venv/
+.cache/
+.claude/
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# Large intermediate training checkpoints — only the final adapter is kept.
+models/slm/checkpoints/
+
+# Personal reference material — not part of the assignment deliverables.
+PROJECT_UPDATE_LOG.md
+INTERVIEW_PREP.md
