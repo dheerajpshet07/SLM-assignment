@@ -7,97 +7,116 @@
 | Task | 6-way single-label classification of an MCP tool's action category |
 | Labels | `Read`, `Write`, `Execute`, `Destructive`, `Financial`, `Other` |
 | Base model | `Qwen/Qwen2.5-0.5B-Instruct` (494M params) |
-| Adaptation | LoRA (r=16, α=32, dropout=0.05) on attention + MLP projections; classification head fully fine-tuned |
+| Adaptation | LoRA (r=16, alpha=32, dropout=0.05) on attention + MLP projections; classification head fully fine-tuned |
 | Formulation | Sequence classification (softmax over 6 fixed logits), not generation |
-| Input | `Tool name`, `Description`, flattened `input_schema` parameter list (see README.md → Text Representation) |
+| Input | Tool name, description, and a flattened `input_schema` parameter list (see README.md → Text representation) |
 | Max sequence length | 320 tokens, right-truncated |
 | Training hardware | Single RTX 4050 laptop GPU, 6GB VRAM |
 
 ## Intended use
 
-- Bulk-labeling or triaging MCP (Model Context Protocol) tool definitions by
-  the *effect* they have when invoked (read-only vs. mutates state vs. runs
-  arbitrary commands vs. destructive vs. moves money vs. none of the above),
-  e.g. to drive an approval/guardrail policy in an agent framework that
-  should require extra confirmation before invoking `Destructive` or
-  `Financial` tools.
-- Batch classification of a JSONL export of tool definitions
-  (`predict.py`), not a real-time/streaming service as shipped.
+Classifying MCP (Model Context Protocol) tool definitions by what they
+actually do when invoked: read-only, mutates state, runs arbitrary
+commands, destructive, moves money, or none of the above. The main use
+case is feeding an approval/guardrail policy in an agent framework, e.g.
+requiring extra confirmation before a `Destructive` or `Financial` tool
+gets called automatically. Shipped as batch classification over a JSONL
+file (`predict.py`), not a real-time service.
 
-## Out-of-scope / not intended use
+## Out of scope
 
-- **Not a safety boundary by itself.** A misclassified `Destructive` tool
-  labeled `Write` is a false negative on the exact axis this model exists
-  to catch. See Limitations — this must be one signal among several
-  (e.g. paired with human review or a stricter rule-based allowlist) for
-  any actual access-control decision, not the sole gate.
-- **Not validated on non-MCP tool schemas.** Trained and evaluated only on
-  MCP tool records with the `name` + `description` + JSON Schema
-  `input_schema` shape provided in this dataset; behavior on other API
-  description formats (OpenAPI specs, raw function signatures without
-  descriptions, etc.) is unverified.
-- **Not multi-label.** A tool that both reads and writes is forced into one
-  label. See README.md → Follow-up discussion for how this could be
-  extended.
+- **Not a safety boundary on its own.** A `Destructive` tool mislabeled as
+  `Write` is exactly the kind of miss this model exists to catch, so it
+  shouldn't be the only thing standing between an agent and a risky action.
+  Pair it with human review or a stricter rule-based allowlist for anything
+  that actually gates access.
+- **Not validated outside MCP tool schemas.** Trained and evaluated only on
+  the name/description/JSON-Schema shape this dataset uses. Unverified on
+  OpenAPI specs, bare function signatures, or anything without a
+  description field.
+- **Not multi-label.** A tool that both reads and writes gets forced into
+  one label. See the assignment's follow-up-interview notes at the top of
+  this repo's README for how a multi-label version would work.
 
 ## Training data
 
-- `data/train.jsonl` (22,143 rows, 1,448 MCP servers), split from
-  validation/test by `server_slug` (`StratifiedGroupKFold`, provided by the
-  employer, verified zero-overlap in `reports/data_audit.md`).
-- Severely imbalanced: `Read` is ~64% of training rows; `Financial` (111
-  rows) and `Other` (76 rows) combined are under 1%. Addressed via
-  sqrt-dampened inverse-frequency class weighting in the loss (see
-  `src/slm/train_slm.py`).
+`data/train.jsonl`: 22,143 rows across 1,448 MCP servers, split from
+validation/test by `server_slug` (grouped split provided by the employer,
+zero server overlap confirmed in `reports/data_audit.md`). Heavily
+imbalanced: `Read` is about 64% of training rows, `Financial` and `Other`
+combined are under 1%. Handled with sqrt-dampened inverse-frequency class
+weighting in the loss; see `src/slm/train_slm.py`.
 
 ## Performance (validation split, 4,429 rows)
 
-_See `reports/slm_metrics.json` and `reports/figures/slm_confusion_matrix.png`
-for the full breakdown once training completes; summary below._
+Full breakdown in `reports/slm_metrics.json` and
+`reports/figures/slm_confusion_matrix.png`. Best checkpoint was epoch 4
+(macro F1 peaked there; epoch 5 dropped slightly with rising eval loss, an
+overfitting signal, so `load_best_model_at_end` kept epoch 4):
 
-Training is early-stopped on validation macro F1, so the number below is a
-lower bound as of the last completed epoch, not the final saved checkpoint:
+| Metric | Value |
+|---|---|
+| Macro F1 | 0.830 |
+| Weighted F1 | 0.950 |
+| Accuracy | 95.1% |
 
-| Epoch | Macro F1 | Accuracy |
-|---|---|---|
-| 1 | 0.709 | 91.9% |
-| 2 | 0.782 | 93.8% |
+| Class | Precision | Recall | F1 | Support |
+|---|---|---|---|---|
+| Read | 0.962 | 0.977 | 0.969 | 2817 |
+| Write | 0.930 | 0.925 | 0.927 | 1087 |
+| Execute | 0.931 | 0.809 | 0.866 | 235 |
+| Destructive | 0.968 | 0.953 | 0.960 | 253 |
+| Financial | 0.778 | 0.955 | 0.857 | 22 |
+| Other | 0.800 | 0.267 | 0.400 | 15 |
 
-Baseline reference (TF-IDF + Logistic Regression): macro F1 0.688,
-accuracy 88.4% (`reports/baseline_metrics.json`).
+Baseline (TF-IDF + Logistic Regression) for reference: macro F1 0.688,
+accuracy 88.4%, in `reports/baseline_metrics.json`.
+
+Deployment footprint: 44.5MB LoRA adapter, ~28 records/sec batched
+throughput on an RTX 4050, 0% invalid-output rate by construction. Full
+detail in `reports/slm_metrics.json`.
 
 ## Known failure modes
 
-_Pending — see `reports/error_analysis.md` once the SLM finishes training
-and its validation predictions can be analyzed. `src/eval/error_analysis.py`
-is built and validated (tested against the baseline's errors already);
-running it against the SLM's own mistakes is the last step._
+Full write-up with examples in `reports/error_analysis.md`. Summary: 215
+validation errors (4.9%, down from the baseline's 514/11.6%). Three
+recurring patterns:
+
+1. **Umbrella tools with no verb to key on**, e.g. an Azure tool described
+   only as "Work with Azure SQL Database servers." These genuinely mix
+   read and write behavior depending on runtime arguments the static
+   description never exposes. Not fixable by more training; it's a
+   data/taxonomy limitation.
+2. **Description wording pointing at the wrong category.** A `dbt`
+   `compile` tool explicitly says "without running" and still gets
+   predicted `Execute`; a tool described as "Writes .brand-preview.html"
+   is labeled `Execute` but predicted `Read`. The model leans on
+   individual verbs more than full sentence context.
+3. **`Other` has no coherent internal pattern.** Recall is 0.267 on just
+   15 validation examples spanning unrelated tools (image analysis, an
+   astrology calculator, an AWS Lambda invoker). With 76 training examples
+   covering that much variety, there's little shared signal to learn from.
 
 ## Limitations
 
-- **Description-dependent.** The model only sees `name` + `description` +
-  parameter schema — a tool with a misleading or missing description (316
-  training rows and 42 test rows have an empty description, per the data
-  audit) is judged on name and parameters alone, which is markedly less
-  reliable.
-- **Rare classes stay rare classes.** Class weighting improves recall on
-  `Financial`/`Other` versus an unweighted model, but with only 111/76
-  training examples respectively, the model has seen far less variety in
-  what these categories look like than it has for `Read`. Treat
-  low-support-class predictions with more skepticism than high-support-class
-  ones — see README.md → Calibration & abstention discussion.
-- **English-centric.** Tool descriptions in the training data are
-  overwhelmingly English; behavior on non-English descriptions is
-  untested.
-- **No calibrated confidence / abstention.** The shipped model always emits
-  one of six labels, even for genuinely ambiguous or out-of-distribution
-  inputs — there is no "I don't know." Softmax probabilities are available
-  from the logits but were not calibrated (e.g. temperature scaling) or
-  validated for reliability as confidence estimates.
-- **Static snapshot.** Trained on a mid-2026 crawl of public MCP servers;
-  tool-naming conventions and MCP ecosystem patterns will drift, and the
-  model isn't automatically kept current (see README.md → Production
-  monitoring and drift discussion).
+- **Leans on the description.** The model only sees name, description, and
+  parameter schema. 316 training rows and 42 test rows have an empty
+  description, and those get judged on name and parameters alone, which is
+  noticeably less reliable.
+- **Rare classes are still rare.** Class weighting helps recall on
+  `Financial`/`Other`, but with only 111 and 76 training examples
+  respectively, the model just hasn't seen much variety in what those
+  categories look like. Treat predictions in those two classes with more
+  skepticism than a `Read`/`Write` prediction.
+- **English-centric.** Training descriptions are overwhelmingly English;
+  untested on anything else.
+- **No calibration or abstention.** The model always outputs one of six
+  labels, even on a genuinely ambiguous input. There's no "not sure."
+  Softmax probabilities exist but haven't been calibrated (e.g. temperature
+  scaling) or checked for reliability as confidence estimates.
+- **Static snapshot.** Trained on a mid-2026 crawl of public MCP servers.
+  As tool-naming conventions in the ecosystem shift, accuracy will drift,
+  and nothing here retrains automatically.
 
 ## Reproduction
 
@@ -109,7 +128,7 @@ python predict.py --model-path models/slm/adapter \
                    --output predictions.csv
 ```
 
-Model weights are not included in this submission (per instructions); the
-adapter directory (`models/slm/adapter/`, LoRA weights only, a few tens of
-MB) is included, and the base model (`Qwen/Qwen2.5-0.5B-Instruct`) is
-pulled from the Hugging Face Hub on first run.
+Full model weights aren't included in this submission. The adapter
+directory (`models/slm/adapter/`, LoRA weights only, a few tens of MB) is
+included; the base model (`Qwen/Qwen2.5-0.5B-Instruct`) downloads from the
+Hugging Face Hub on first run.

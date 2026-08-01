@@ -56,7 +56,15 @@ def predict_slm(model_path: str, texts: list[str], batch_size: int, max_length: 
     resolved_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
     tokenizer = AutoTokenizer.from_pretrained(model_path, cache_dir=CACHE_DIR)
-    model = AutoPeftModelForSequenceClassification.from_pretrained(model_path, cache_dir=CACHE_DIR)
+    # num_labels isn't stored in adapter_config.json, so it must be passed
+    # explicitly or the base model loads with the transformers default
+    # (num_labels=2) and the saved 6-way classification head fails to load.
+    model = AutoPeftModelForSequenceClassification.from_pretrained(
+        model_path, cache_dir=CACHE_DIR, num_labels=len(LABELS)
+    )
+    # Set at training time on the in-memory model only, so it isn't part of
+    # the saved checkpoint's base config and has to be set again here.
+    model.config.pad_token_id = tokenizer.pad_token_id
     model.to(resolved_device)
     model.eval()
 

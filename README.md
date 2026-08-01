@@ -143,25 +143,21 @@ Be prepared for a 45-minute discussion covering:
 
 # Solution
 
-This section documents the actual implementation: setup, commands,
-decisions, and results. See `PROJECT_UPDATE_LOG.md` for the full
-development journal (per-feature rationale, technical/layman explanations,
-interview Q&A) and `MODEL_CARD.md` for the model card.
+This section covers setup, commands, the reasoning behind the main design
+choices, and results. Model card is in `MODEL_CARD.md`.
 
 ## Setup
 
-Tested on Windows with Python 3.11. This machine's GPU is a laptop RTX 4050
-with **6GB VRAM** (not a dedicated 24GB card) — the model and batch-size
-choices below were made for that constraint, comfortably inside the
-assignment's ≤24GB / ≤3B-parameter ceiling.
+Built and tested on Windows / Python 3.11. GPU is a laptop RTX 4050 with
+6GB VRAM, not the 24GB the assignment budgets for, so batch size and model
+size below were picked for that reality rather than the assignment ceiling.
 
 ```bash
 python -m venv .venv
 .venv/Scripts/activate   # Windows; `source .venv/bin/activate` on Linux/Mac
 
-# Torch is hardware-specific — install the CUDA build matching your driver
-# (check with `nvidia-smi`; cu124 works for CUDA 12.4+ drivers). CPU-only
-# works too, just slower (see Inference latency below).
+# torch is hardware-specific, so it's not in requirements.txt. Check your
+# driver with nvidia-smi and pick a matching CUDA build, e.g.:
 pip install torch --index-url https://download.pytorch.org/whl/cu124
 
 pip install -r requirements.txt
@@ -199,7 +195,8 @@ python predict.py --model-path models/slm/adapter \
 ## Decisions
 
 ### Text representation
-Every record is rendered by `src/data/schema.py:build_input_text()` as:
+`src/data/schema.py:build_input_text()` turns every record into one text
+block:
 
 ```
 Tool name: <name>
@@ -208,111 +205,128 @@ Parameters:
 - <param> (<type>, required|optional)[ enum[...]]: <short param description>
 ```
 
-`input_schema` is flattened rather than dumped as raw JSON (bounds length,
-keeps the signal — a `confirm: boolean` param is a strong `Destructive`
-cue, an `amount`/`currency` pair a strong `Financial` cue — without wasting
-tokens on JSON punctuation). `server_slug` and `servers_public.jsonl` are
-deliberately excluded from the model input so the model can't shortcut to
-"which server is this" instead of "what does this tool do" — see
-`reports/data_audit.md` → Text representation for the full rationale. The
-same function feeds both the baseline and the SLM, so the macro-F1 gap
-between them reflects modeling approach, not differing inputs.
+I flattened `input_schema` into that parameter list instead of dumping raw
+JSON. Raw JSON burns tokens on braces and quotes, and a flattened
+`confirm: boolean` or `amount`/`currency` pair is a much more direct signal
+for `Destructive`/`Financial` than the same thing buried in nested JSON.
+`server_slug` and `servers_public.jsonl` are left out on purpose too — a
+model that can see which server a tool came from can shortcut to "which
+server is this" instead of actually reading the tool description, and that
+shortcut won't hold up on a server it's never seen. Full writeup in
+`reports/data_audit.md`.
 
-### Model / tokenizer selection
-`Qwen/Qwen2.5-0.5B-Instruct` (494M params). Considered up to the
-assignment's 3B ceiling, but this machine's actual GPU is a shared 6GB
-laptop card; 0.5B leaves comfortable headroom for LoRA optimizer state and
-activations without needing 4-bit quantization (which brings in
-`bitsandbytes`, historically flaky on Windows). See
-`src/slm/train_slm.py` module docstring for the full trade-off.
+Both the baseline and the SLM train on the exact same `build_input_text()`
+output, so whatever F1 gap shows up between them is about the model, not
+about one of them getting a better prompt.
 
-### Prompt / input format
-Same `build_input_text()` output as the baseline, tokenized directly — no
-chat template or instruction wrapper, because this is formulated as
-sequence classification (see below), not a generation/chat task.
+### Model choice
+`Qwen/Qwen2.5-0.5B-Instruct`, 494M params. The assignment allows up to 3B,
+but I sized down for the actual GPU in this laptop (6GB, shared with
+everything else running on the machine) rather than the assignment's
+ceiling. 0.5B leaves enough headroom for LoRA training without reaching
+for 4-bit quantization, which would pull in `bitsandbytes` — not the most
+reliable thing to depend on for a Windows setup.
 
-### Sequence-classification, not generation
-`AutoModelForSequenceClassification` with a 6-way softmax head, not
-constrained/generative decoding. Two reasons: (1) a fixed 6-logit softmax +
-argmax can only ever emit one of the six known labels — no parsing, no
-invalid-output risk, no retry logic needed; (2) one forward pass per
-record vs. an autoregressive decode loop is directly cheaper at inference
-time. The classification head (`score`, randomly initialized — Qwen2.5 is
-not shipped with a classification head) is fully fine-tuned
-(`modules_to_save=["score"]` in the LoRA config) rather than LoRA-adapted,
-since LoRA decomposes a *delta* on top of pretrained weights and there are
-no pretrained weights for this head to adapt.
+### Classification head, not generation
+The model predicts through a 6-way softmax head
+(`AutoModelForSequenceClassification`) rather than generating the label as
+text. Two reasons. First, output validity: argmax over 6 fixed logits can
+only ever land on one of the six real labels, so there's no parsing step
+and nothing to go wrong there. Second, it's just cheaper at inference, one
+forward pass instead of a token-by-token decode. The head itself (`score`)
+is randomly initialized, since Qwen2.5 doesn't ship with a classifier, so
+it's fully trained rather than LoRA-adapted (`modules_to_save=["score"]`).
+There's no pretrained weight there for a LoRA delta to sit on top of.
 
-### Max sequence length and truncation
-320 tokens, right-truncated. Chosen from the actual token-length
-distribution of `build_input_text()` output under the Qwen tokenizer
-(computed over train+validation): p95 = 280 tokens, p99 = 425 — 320 covers
-~97% of records exactly and truncates only the long tail (some MCP tools
-embed multi-paragraph usage examples in their description), where the
-truncated content is past the informative prefix (name, description start,
-first parameters).
+### Sequence length
+320 tokens, truncated from the right. I checked the actual token-length
+distribution under the Qwen tokenizer before picking a number: p95 is 280
+tokens, p99 is 425, so 320 covers roughly 97% of records outright. What
+gets cut is mostly a handful of tools with long, example-heavy
+descriptions, and the cut happens after the name/description/first few
+parameters, which is where most of the signal already is.
 
-### Class-imbalance strategy
-Sqrt-dampened inverse-frequency class weights in the cross-entropy loss
-(`WeightedLossTrainer` in `src/slm/train_slm.py`): `weight_c =
-(n_samples / (n_classes * count_c)) ** 0.5`. Plain inverse-frequency
-(power=1.0, what the baseline's `class_weight="balanced"` uses) gives
-`Other` (76 training rows) a weight of ~48x `Read`'s; pilot runs at that
-setting showed high-variance loss spikes on `Other`/`Financial` batches
-without a matching recall gain, so the exponent is dampened to 0.5,
-pulling extreme weights toward 1 while still upweighting the tail
-(`--class-weight-power` is a CLI flag if this needs revisiting).
+### Class imbalance
+The loss uses sqrt-dampened inverse-frequency class weights
+(`WeightedLossTrainer` in `src/slm/train_slm.py`):
+`weight_c = (n_samples / (n_classes * count_c)) ** 0.5`. Full inverse
+frequency (what the baseline's `class_weight="balanced"` uses) puts `Other`
+at roughly 48x the weight of `Read`, and in early testing that just made
+training noisy on `Other`/`Financial` batches without actually improving
+recall on them. Dampening the exponent to 0.5 keeps the same ordering but
+pulls the extremes back toward 1. `--class-weight-power` is exposed as a
+flag if this needs revisiting.
 
-### Training configuration
-- LoRA: r=16, α=32, dropout=0.05, targeting
-  `q/k/v/o_proj` + `gate/up/down_proj`; classification head fully trained.
-- Effective batch size 32 (`train-batch-size=4` × `grad-accum-steps=8`,
-  gradient checkpointing on — required to fit training in 6GB VRAM; see
-  `PROJECT_UPDATE_LOG.md` for the memory-calibration process).
-- LR 2e-4, cosine schedule, 6% warmup, weight decay 0.01, bf16 (native on
-  this GPU's Ada architecture).
-- Up to 8 epochs, early stopping (patience configurable, `metric_for_best_model="macro_f1"`).
+### Training setup
+LoRA at r=16, alpha=32, dropout=0.05, on all attention and MLP projections,
+plus the fully-trained classification head. Batch size and gradient
+checkpointing came out of actually testing what fits in 6GB: a few short
+runs at increasing batch sizes while watching peak memory usage, landing on
+`--train-batch-size 32 --eval-batch-size 64 --grad-accum-steps 1` with
+checkpointing on. LR 2e-4 with cosine decay and 6% warmup, weight decay
+0.01, bf16 (the 4050's Ada architecture supports it natively). Up to 6
+epochs with early stopping, `metric_for_best_model="macro_f1"`.
 
-### Checkpoint selection and stopping rule
-`load_best_model_at_end=True` with `metric_for_best_model="macro_f1"`
-(evaluated on `data/validation.jsonl` after every epoch) — the saved
-adapter is the epoch with the best validation macro F1, not the last
-epoch trained, and `EarlyStoppingCallback` stops training once macro F1
-hasn't improved for the configured patience.
+### Checkpoint selection
+`load_best_model_at_end=True`, gated on validation macro F1 checked after
+every epoch. Whatever gets saved is the best epoch, not just the last one,
+and training stops once macro F1 hasn't improved for a couple of epochs in
+a row.
 
-### Making output labels valid and deterministic
-By construction, not by post-processing: the model head has exactly 6
-output logits corresponding 1:1 to the 6 labels; `predict.py` takes
-`argmax` and maps through a fixed `id2label` table. There is no free-text
-output to parse or validate, so invalid-output rate is 0% by design (see
-`reports/slm_metrics.json`) — this was the primary reason to prefer the
-classification-head formulation over generative decoding.
+### Valid, deterministic output
+This falls out of using a classification head rather than something bolted
+on after the fact. Six logits, one argmax, one label. There's no free-text
+output to validate, so the invalid-output rate is 0% by construction
+(`reports/slm_metrics.json` reports it anyway, for the record).
 
 ## Results
 
-_Full metrics: `reports/baseline_metrics.json`, `reports/slm_metrics.json`.
-Confusion matrices: `reports/figures/*_confusion_matrix.png`._
+Full metrics in `reports/baseline_metrics.json` and `reports/slm_metrics.json`
+(also consolidated in `metrics.json` at the repo root), confusion matrices
+in `reports/figures/`. Validation split, 4,429 rows.
 
 | Model | Macro F1 | Weighted F1 | Accuracy |
 |---|---|---|---|
 | Baseline (TF-IDF + LogReg) | 0.688 | 0.884 | 88.4% |
-| SLM (Qwen2.5-0.5B + LoRA) | *training in progress* | – | – |
+| SLM (Qwen2.5-0.5B + LoRA) | **0.830** | 0.950 | 95.1% |
 
-The SLM's per-epoch validation macro F1 is already tracking above the
-baseline early in training (epoch 1: 0.709, epoch 2: 0.782, still
-improving) — see `models/slm/training_summary.json` once training
-completes for the final checkpoint's numbers and `reports/slm_metrics.json`
-for the full per-class breakdown, confusion matrix, and latency/throughput.
-This section will be updated with the final comparison table once the
-training run (early-stopped on validation macro F1) finishes.
+The SLM clears the baseline by 0.14 macro F1, a bigger gap than the
+per-epoch trend suggested early on (epoch 1: 0.709, epoch 2: 0.782, epoch
+3: 0.805, epoch 4: 0.830, the best checkpoint, per
+`models/slm/training_summary.json`). Epoch 5 came in slightly lower (0.829)
+with eval loss rising noticeably, an early overfitting signal, so
+`load_best_model_at_end` correctly kept epoch 4 rather than a later one.
+
+Per-class F1: Read 0.969, Write 0.927, Destructive 0.960, Execute 0.866,
+Financial 0.857, Other 0.400. The two classes that matter most for a
+tool-gating use case, `Destructive` and `Financial`, are both strong.
+`Other` is the weak point: only 15 validation examples and no coherent
+internal pattern (see error analysis below).
+
+Deployment numbers: 44.5MB adapter, 0% invalid-output rate (by
+construction), ~28 records/sec batched on this GPU, full detail in
+`reports/slm_metrics.json`.
 
 ## Error analysis
 
-_In progress — pending final SLM validation predictions._
-`src/eval/error_analysis.py` groups validation misclassifications by
-(true, predicted) label pair so the write-up in `reports/error_analysis.md`
-covers systematic failure modes with concrete examples, not a random
-sample. Will be completed once the SLM finishes training; see
-`reports/validation_predictions_baseline.jsonl` in the interim for the
-baseline's error patterns.
+Full write-up in `reports/error_analysis.md`. Short version: the SLM drops
+errors from 514 (11.6%, baseline) to 215 (4.9%). Over half of what's left
+is Read/Write confusion, concentrated in two patterns worth knowing about:
+
+1. **Umbrella tools with no verb to key on.** Things like an Azure tool
+   described only as "Work with Azure SQL Database servers," which
+   genuinely could be either read or write depending on runtime arguments
+   the static description doesn't expose. This is a data/taxonomy
+   limitation, not something more training fixes.
+2. **The description's own wording points at the wrong category.** A
+   `dbt` `compile` tool explicitly says "without running" and still gets
+   predicted `Execute`; a tool literally described as "Writes
+   .brand-preview.html" is labeled `Execute` and predicted `Read`. The
+   model leans on individual verbs ("update," "execute," "compile") more
+   than the sentence they sit in.
+
+`Other` is the standout weak class (recall 0.27), and its errors span
+completely unrelated tools: an image-analysis tool, a Chinese astrology
+calculator, an AWS Lambda invoker. There's no shared pattern for a model
+to learn with only 76 training examples covering that much variety.
 

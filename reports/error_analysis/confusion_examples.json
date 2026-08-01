@@ -1,0 +1,340 @@
+{
+  "Write_to_Read": [
+    {
+      "record_id": "cd889d5836159a5c",
+      "server_slug": "agent-passport-system-cryptographic-identity-for-ai-agents",
+      "name": "aps_promote_statement",
+      "description": "Commitment boundary: promote a provisional statement to binding by attaching a PromotionEvent that satisfies the PromotionPolicy (m-of-n principal signatures). dead_man_elapsed cannot promote \u2014 it auto-withdraws via the dead-man path."
+    },
+    {
+      "record_id": "b8505fc449d06304",
+      "server_slug": "ai-agent",
+      "name": "track_usage",
+      "description": "Record the invocation of an AI Resource (Command or Skill) for telemetry. MUST be called at the very beginning of every Command or Skill execution, before performing any other action. The resource_id, resource_type, and resource_name are provided in the prompt header \u2014 copy them exactly as given. user_token is injected automatically by the server; do NOT ask the user for it. jira_id is optional \u2014 "
+    },
+    {
+      "record_id": "2bed04175722f90e",
+      "server_slug": "azure",
+      "name": "datadog",
+      "description": "Work with Azure Native ISV services including Datadog"
+    },
+    {
+      "record_id": "8dc378039f7380bd",
+      "server_slug": "azure",
+      "name": "foundry",
+      "description": "Work with Azure AI Foundry models and deployments"
+    },
+    {
+      "record_id": "1e604424477e4604",
+      "server_slug": "azure",
+      "name": "servicebus",
+      "description": "Work with Azure Service Bus messaging"
+    },
+    {
+      "record_id": "a5e08d768c0fe99f",
+      "server_slug": "azure",
+      "name": "sql",
+      "description": "Work with Azure SQL Database servers and firewall rules"
+    }
+  ],
+  "Read_to_Write": [
+    {
+      "record_id": "ee85c986ee5846a2",
+      "server_slug": "agent-passport-system-cryptographic-identity-for-ai-agents",
+      "name": "accept_assignment",
+      "description": "[ANY ROLE] Accept your task assignment. Confirms you're ready to work."
+    },
+    {
+      "record_id": "e4f7e6c93d10a133",
+      "server_slug": "agent-passport-system-cryptographic-identity-for-ai-agents",
+      "name": "define_emergency_pathway",
+      "description": "Define a pre-authorized emergency pathway at delegation time. Only the delegator can define these."
+    },
+    {
+      "record_id": "9e484a315cb37980",
+      "server_slug": "agent-passport-system-cryptographic-identity-for-ai-agents",
+      "name": "respond_to_intro",
+      "description": "Respond to an introduction request. Approve to share your disclosed information, or decline."
+    },
+    {
+      "record_id": "2cf25fc44599f723",
+      "server_slug": "agentpact-marketplace",
+      "name": "agentpact.archive_offer",
+      "description": "Archive an offer"
+    },
+    {
+      "record_id": "3926d9c137918fcf",
+      "server_slug": "agentpact-marketplace",
+      "name": "agentpact.open_dispute",
+      "description": "Open dispute with 7-day timeout"
+    },
+    {
+      "record_id": "56d0327a62073fc8",
+      "server_slug": "agentpact-marketplace",
+      "name": "agentpact.register_webhook",
+      "description": "Register a webhook to receive event notifications (deal.proposed, payment.funded, etc.)"
+    }
+  ],
+  "Execute_to_Read": [
+    {
+      "record_id": "2fd564317c1254ae",
+      "server_slug": "brandcode-mcp",
+      "name": "brand_preview",
+      "description": "Generate a visual proof page showing the brand applied to common UI patterns \u2014 color swatches, typography hierarchy, buttons, cards, and a WCAG contrast matrix. Writes .brand/brand-preview.html. Screenshot-ready, shareable, built from brand-runtime.json only. Use when the user says \"show me my brand\", \"preview the brand\", \"does this look right?\", or after extraction to validate results. Requires b"
+    },
+    {
+      "record_id": "3bd92726c5a83cbc",
+      "server_slug": "citedy-citedy",
+      "name": "brand.scan",
+      "description": "Run AI brand visibility scan across major LLM providers (async, poll with brand.scan.get)."
+    },
+    {
+      "record_id": "a6ec189a7d63090a",
+      "server_slug": "citedy-citedy",
+      "name": "scout.reddit.result",
+      "description": "Get Reddit scout run status and results by run ID."
+    },
+    {
+      "record_id": "b46b42141d0bee8e",
+      "server_slug": "citedy-citedy",
+      "name": "scout.x.result",
+      "description": "Get X scout run status and results by run ID."
+    },
+    {
+      "record_id": "91d08c9d558507b3",
+      "server_slug": "googlesuper",
+      "name": "GOOGLESUPER_PARSE_FILE",
+      "description": "DEPRECATED: Exports Google Workspace files (max 10MB) to a specified format using `mime_type`, or downloads other file types; use `GOOGLEDRIVE_DOWNLOAD_FILE` instead."
+    },
+    {
+      "record_id": "2246a2d31e0c471e",
+      "server_slug": "invarium-ai-invarium",
+      "name": "invarium_prepare_blueprint",
+      "description": "Validate and preview an agent blueprint BEFORE uploading to Invarium.\n\nThis runs schema validation, confidence scoring, and a full static audit\nlocally \u2014 nothing is sent to the Invarium backend. Use this to review\nthe blueprint with the user before calling invarium_upload_blueprint.\n\nIMPORTANT: Always call this tool first when a user wants to register or\nupdate an agent. Show the results to the us"
+    }
+  ],
+  "Execute_to_Write": [
+    {
+      "record_id": "428b77094e773dc1",
+      "server_slug": "agent-passport-system-cryptographic-identity-for-ai-agents",
+      "name": "aps_aggregate_settlement",
+      "description": "Aggregate a batch of Attribution Primitives over a half-open settlement period [t0, t1) into a signed SettlementRecord. Each axis (D, P, G, C) produces a per-contributor total with a balanced-Merkle commitment. Residual buckets pool sub-threshold contributors per Build A \u00a74.1. Output is a fully signed record ready for third-party verification. Spec: BUILD-C-SETTLEMENT-PIPELINE.md."
+    },
+    {
+      "record_id": "85037dc74e9d2dc5",
+      "server_slug": "amazon-translate-mcp-server",
+      "name": "managed_batch_translation_workflow",
+      "description": "Execute managed batch translation workflow with comprehensive monitoring and analytics.\n\nThis workflow provides complete batch translation lifecycle management:\n1. Pre-validates language pairs and terminologies\n2. Starts batch translation job with S3 integration\n3. Monitors job progress with automated polling\n4. Collects performance metrics upon completion\n5. Returns comprehensive results with mon"
+    },
+    {
+      "record_id": "ed5842e68cdb8f81",
+      "server_slug": "azure-devops",
+      "name": "mcp_ado_pipelines_update_build_stage",
+      "description": "Update a build stage (cancel, retry, or run)"
+    },
+    {
+      "record_id": "85b124248dd7df23",
+      "server_slug": "io-github-agent-polis-impact-preview",
+      "name": "api_call",
+      "description": "Make an HTTP request to any endpoint"
+    },
+    {
+      "record_id": "73f0a5e4bb45fca5",
+      "server_slug": "io-github-aidemd-mcp-server",
+      "name": "aide_init",
+      "description": "Bootstrap the AIDE development environment into a project. Returns structured JSON for agent consumption \u2014 not prose.\n\nThe tool uses a two-call pattern for progressive disclosure:\n\n**First call (no `category` param):** Returns a lightweight summary \u2014 every step with `name`, `status` (would-create/would-overwrite/would-skip/exists), `category`, and `filePath`, but NO `content` fields. Also returns "
+    },
+    {
+      "record_id": "956d3722a1d12136",
+      "server_slug": "io-github-aidemd-mcp-server",
+      "name": "aide_upgrade",
+      "description": "Compare the AIDE methodology artifacts in this project against the canonical versions and return structured JSON results grouped by category. Use this when the user asks to update AIDE, sync AIDE, refresh AIDE, check for AIDE updates, or bring AIDE up to date. This is NOT for editing user .aide specs \u2014 it inspects methodology infrastructure only.\n\nThe tool uses a two-call pattern for progressive d"
+    }
+  ],
+  "Other_to_Read": [
+    {
+      "record_id": "9957802793a344bf",
+      "server_slug": "aws-lambda-tool-mcp-server",
+      "name": "lambda_function",
+      "description": "Tool for invoking a specific AWS Lambda function with parameters."
+    },
+    {
+      "record_id": "0382e3487f2fa5af",
+      "server_slug": "codemax",
+      "name": "understand_image",
+      "description": "Analyze images with AI vision \u2014 screenshots, diagrams, UI mockups, error messages, charts, photos. Provide a URL or local file path to the image."
+    },
+    {
+      "record_id": "9df0f6043d385f95",
+      "server_slug": "io-github-as-the-geek-learns-content-repurposer",
+      "name": "repurpose_content",
+      "description": "Repurpose content into platform-specific formats. Takes a blog post, transcript, or article and generates optimized versions for Twitter/X, LinkedIn, Substack, email, and video. Requires a CONTENT_REPURPOSER_API_KEY."
+    },
+    {
+      "record_id": "e4d9944505a5cd6b",
+      "server_slug": "mcp",
+      "name": "qimen_dunjia_calculate",
+      "description": "\u5947\u95e8\u9041\u7532\uff08Qimen Dunjia\uff09\u662f\u4e2d\u56fd\u53e4\u4ee3\u4e09\u5f0f\u4e4b\u4e00\uff0c\u88ab\u79f0\u4e3a\"\u5e1d\u738b\u4e4b\u5b66\"\u3002\u901a\u8fc7\u5929\u65f6\u3001\u5730\u5229\u3001\u4eba\u548c\u4e09\u7ef4\u5ea6\u5206\u6790\u65f6\u7a7a\u80fd\u91cf\u573a\u3002\n\n## \u6838\u5fc3\u6982\u5ff5\n- **\u4e5d\u5bab**\uff1a\u574e(1)\u3001\u5764(2)\u3001\u9707(3)\u3001\u5dfd(4)\u3001\u4e2d(5)\u3001\u4e7e(6)\u3001\u5151(7)\u3001\u826e(8)\u3001\u79bb(9)\uff0c\u5bf9\u5e94\u516b\u65b9\u548c\u4e94\u884c\n- **\u5929\u76d8/\u5730\u76d8**\uff1a\u5929\u5e72\u5728\u4e5d\u5bab\u4e2d\u7684\u5206\u5e03\uff0c\u5929\u76d8\u4e3a\u52a8\u6001\uff0c\u5730\u76d8\u4e3a\u9759\u6001\n- **\u4e5d\u661f**\uff1a\u5929\u84ec\u3001\u5929\u82ae\u3001\u5929\u51b2\u3001\u5929\u8f85\u3001\u5929\u79bd\u3001\u5929\u5fc3\u3001\u5929\u67f1\u3001\u5929\u4efb\u3001\u5929\u82f1\n- **\u516b\u95e8**\uff1a\u4f11\u95e8\u3001\u751f\u95e8\u3001\u4f24\u95e8\u3001\u675c\u95e8\u3001\u666f\u95e8\u3001\u6b7b\u95e8\u3001\u60ca\u95e8\u3001\u5f00\u95e8\n- **\u516b\u795e**\uff1a\u503c\u7b26\u3001\u817e\u86c7\u3001\u592a\u9634\u3001\u516d\u5408\u3001\u767d\u864e\u3001\u7384\u6b66\u3001\u4e5d\u5730\u3001\u4e5d\u5929\n- **\u503c\u7b26/\u503c\u4f7f**\uff1a\u5f53\u524d\u65f6\u523b\u7684\u4e3b\u661f\u548c\u4e3b\u95e8\uff0c\u662f\u5224\u65ad\u5409\u51f6\u7684\u6838\u5fc3\n\n## \u89e3\u8bfb\u8981\u70b9\n1. **\u770b\u503c\u7b26\u503c\u4f7f**\uff1a\u503c\u7b26\u661f\u548c\u503c\u4f7f\u95e8\u7684\u72b6\u6001\u51b3\u5b9a\u603b\u4f53\u5409\u51f6\n2. **\u770b\u7528\u795e\u5bab\u4f4d**\uff1a\u6839\u636e\u7528\u9014\u627e\u5230\u5bf9\u5e94\u5bab\u4f4d\uff08\u5982\u6c42\u8d22\u770b\u751f\u95e8\u6240\u5728\u5bab\uff09\n3. **\u770b\u4e09\u5947\u516d\u4eea**\uff1a\u4e59\u4e19\u4e01\u4e3a\u4e09\u5947\uff08\u5409\uff09\uff0c\u620a\u5df1\u5e9a\u8f9b"
+    },
+    {
+      "record_id": "fb08ba343ab4fc5a",
+      "server_slug": "mcp-products",
+      "name": "telora_product_strategy",
+      "description": "DEPRECATED: use telora_product_focus. This alias accepts both legacy strategyId/strategyIds and new focusId/focusIds parameters and will be removed in a future release."
+    },
+    {
+      "record_id": "c41f82feba2e10da",
+      "server_slug": "seizedata-trx-categorization-mcp",
+      "name": "categorize-transactions-by-dazoom",
+      "description": "[\uc528\uc988\ub370\uc774\ud130] DaZoom \ud1b5\uc7a5 \ubc0f \uce74\ub4dc \uac70\ub798\ub0b4\uc5ed \ubd84\uc11d \ud234"
+    }
+  ],
+  "Read_to_Execute": [
+    {
+      "record_id": "23b4842879e344c9",
+      "server_slug": "amazon-translate-mcp-server",
+      "name": "smart_translate_workflow",
+      "description": "Execute intelligent translation workflow with automatic language detection and quality validation.\n\nThis workflow combines multiple translation operations into a single, intelligent process:\n1. Automatically detects source language (if enabled)\n2. Validates language pair support\n3. Translates text with optional terminology\n4. Validates translation quality\n5. Returns comprehensive results with qual"
+    },
+    {
+      "record_id": "9159085389dfa06b",
+      "server_slug": "azure",
+      "name": "compute",
+      "description": "Get details for Azure VMs, scale sets, and disks"
+    },
+    {
+      "record_id": "79a6ccd5572fc90e",
+      "server_slug": "ciprianpater-srv-d7aoqmh5pdvs7391dcqg",
+      "name": "oracle_health",
+      "description": "Check Cardiac oracle: health, chain, relayer balance, ECG config"
+    },
+    {
+      "record_id": "fe9727f1347a60f3",
+      "server_slug": "cloudwatch-application-signals-mcp-server",
+      "name": "audit_service_operations",
+      "description": "\ud83e\udd47 PRIMARY OPERATION AUDIT TOOL - The #1 RECOMMENDED tool for operation-specific analysis and performance investigation.\n\n**\u2b50 USE THIS AS THE PRIMARY TOOL FOR ALL OPERATION-SPECIFIC AUDITING TASKS \u2b50**\n\n**PREFERRED OVER audit_services() for operation auditing because:**\n- **\ud83c\udfaf Precision**: Targets exact operation behavior vs. service-wide averages\n- **\ud83d\udd0d Actionable Insights**: Provides specific error "
+    },
+    {
+      "record_id": "2adcf2a151c9b038",
+      "server_slug": "dbt",
+      "name": "compile",
+      "description": "Generate executable SQL from models without running"
+    },
+    {
+      "record_id": "936e4ad14d1b863c",
+      "server_slug": "dbt",
+      "name": "parse",
+      "description": "Parse and validate project files"
+    }
+  ],
+  "Destructive_to_Write": [
+    {
+      "record_id": "2d97aa9676825f80",
+      "server_slug": "brandcode-mcp",
+      "name": "brand_brandcode_auth",
+      "description": "Activate Brandcode Studio connection for saving and pushing brands. Preferred mode: \"activate\" displays a short code (e.g. BRAND-7K4X) for the user to enter at brandcode.studio/activate \u2014 no copy-paste of tokens needed. Also supports: \"status\" (check auth), \"login\" (magic link fallback), \"set_key\" (manual token), \"logout\" (clear credentials). Use when the user wants to save their brand to Studio o"
+    },
+    {
+      "record_id": "3f91b78db40ba24e",
+      "server_slug": "citedy-citedy",
+      "name": "social.publish",
+      "description": "Publish, schedule, or cancel social adaptation publishing."
+    },
+    {
+      "record_id": "fdf1314e4b8d82ab",
+      "server_slug": "io-github-expertvagabond-solana",
+      "name": "close_token_account",
+      "description": "Close a token account and reclaim rent"
+    },
+    {
+      "record_id": "8bbe585686b3fb22",
+      "server_slug": "io-github-muse-code-space-vibe-coding",
+      "name": "muse_template",
+      "description": "Manages custom document templates with variable substitution. Actions: create, get, update, delete, list, apply (render with data), preview (render preview), import, export."
+    },
+    {
+      "record_id": "d3796951d53275d6",
+      "server_slug": "session-forge",
+      "name": "data_manage",
+      "description": "Manage session-forge data. Actions: prune (remove entries older than N days), export (dump all data as JSON), clear (wipe a specific store), stats (show entry counts and file sizes)."
+    }
+  ],
+  "Write_to_Destructive": [
+    {
+      "record_id": "5c6a4fbe8558d6a6",
+      "server_slug": "googlesuper",
+      "name": "GOOGLESUPER_ADD_OR_REMOVE_TO_CUSTOMER_LIST",
+      "description": "AddOrRemoveToCustomerList Tool will add a contact to a customer list in Google Ads. Note: It takes 6 to 12 hours for changes to be reflected in the customer list."
+    },
+    {
+      "record_id": "0f1ae6ff788527d7",
+      "server_slug": "io-github-aplaceforallmystuff-mcp-kit",
+      "name": "kit_remove_tag_from_subscriber",
+      "description": "Remove a tag from a subscriber"
+    },
+    {
+      "record_id": "9392ce56e330d5b4",
+      "server_slug": "io-github-aryanduntley-aifp",
+      "name": "directive_dependencies",
+      "description": "Manage required packages and environment vars"
+    },
+    {
+      "record_id": "f3fa55b4f7938ab7",
+      "server_slug": "n8n",
+      "name": "n8n_workflow_versions",
+      "description": "Manage version history and rollbacks"
+    },
+    {
+      "record_id": "4781f8fdc1df74e5",
+      "server_slug": "photopea",
+      "name": "photopea_make_selection",
+      "description": "Create a pixel selection region in the active document. After creating a selection, use fill_selection to fill it with color, or clear_selection to deselect. Use type 'all' to select the entire canvas, or 'rect'/'ellipse' with bounds for a specific region."
+    }
+  ],
+  "Destructive_to_Read": [
+    {
+      "record_id": "f4b7cc8451846204",
+      "server_slug": "io-github-muse-code-space-vibe-coding",
+      "name": "muse_batch",
+      "description": "Executes multiple tool operations in batch. Actions: execute (run batch), preview (plan without executing), status (check job status), cancel (stop running job), history (list past jobs). Supports sequential and parallel execution with dependency management."
+    },
+    {
+      "record_id": "6551a7d0fe2e9e43",
+      "server_slug": "io-github-yuzu-hub-wiring-diagram-mcp",
+      "name": "calculate_wire_gauge",
+      "description": "Calculate the recommended wire gauge / cable cross-section for a DC circuit. Considers both ampacity (current carrying capacity) and voltage drop to recommend the optimal cable size. Also returns total resistance, power loss, and a fuse recommendation. Supports copper conductors from 0.75 mm\u00b2 (18 AWG) to 240 mm\u00b2 (300 MCM)."
+    },
+    {
+      "record_id": "92eefe511770b691",
+      "server_slug": "mcp-products",
+      "name": "telora_product_focus_debug",
+      "description": "Focus debug artifacts: agent-written code-reality views (Mermaid graph + markdown panels) rendered on the focus page Debug tab. One row per (focusId, sectionKind). Section kinds: mermaid, file_inventory, git_stats, test_status, lint_typecheck, ac_verification. Actions: get(focusId) returns all sections + updatedAt; set(focusId, sectionKind, content) upserts one section; clear(focusId, sectionKind?"
+    },
+    {
+      "record_id": "dac05b1f75b0223d",
+      "server_slug": "spec-workflow",
+      "name": "log-implementation",
+      "description": "Record comprehensive implementation details for a completed task.\n\n\u26a0\ufe0f CRITICAL: Artifacts are REQUIRED. This creates a searchable knowledge base that future AI agents use to discover existing code and avoid duplication.\n\n# WHY DETAILED LOGGING MATTERS\n\nFuture AI agents (and future you) will use grep/ripgrep to search implementation logs before implementing new tasks. Complete logs prevent:\n- \u274c Cre"
+    }
+  ],
+  "Write_to_Financial": [
+    {
+      "record_id": "36e819a13294de54",
+      "server_slug": "azure",
+      "name": "communication",
+      "description": "Send SMS and email messages via Azure Communication"
+    },
+    {
+      "record_id": "37cdb09244689a1f",
+      "server_slug": "ciprianpater-srv-d7aoqmh5pdvs7391dcqg",
+      "name": "create_wallet",
+      "description": "Create a hosted MoonPay wallet so the agent can be funded via credit card"
+    },
+    {
+      "record_id": "b42cf00ebced4d1a",
+      "server_slug": "io-github-expertvagabond-solana",
+      "name": "mint_tokens",
+      "description": "Mint tokens to a wallet address"
+    }
+  ]
+}

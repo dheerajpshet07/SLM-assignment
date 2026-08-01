@@ -1,0 +1,39 @@
+{
+  "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "lora_target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "class_weight_power": 0.5,
+  "class_weights": {
+    "Read": 0.5118934512138367,
+    "Write": 0.824181318283081,
+    "Execute": 1.7722446918487549,
+    "Destructive": 1.7087128162384033,
+    "Financial": 5.766086101531982,
+    "Other": 6.968443870544434
+  },
+  "max_seq_length": 320,
+  "epochs_configured": 6,
+  "epoch_validation_macro_f1": {
+    "1": 0.7086886772345604,
+    "2": 0.7820189394194882,
+    "3": 0.8048445495407948,
+    "4": 0.8299083685441903,
+    "5": 0.8287147173418701
+  },
+  "best_checkpoint_step": 2768,
+  "best_checkpoint_epoch": 4,
+  "best_metric_macro_f1": 0.8299083685441903,
+  "early_stopping_patience": 2,
+  "effective_batch_size": 32,
+  "seed": 20260714,
+  "notes": "Training was stopped manually at step ~4037/4152 (97%, mid-epoch 6) due to a hardware constraint (laptop battery). This did not cost any model quality: epoch 5's macro F1 (0.8287) had already regressed slightly below epoch 4's (0.8299), with eval loss rising from 0.48 to 0.66 (early overfitting signal). With early_stopping_patience=2, training would have stopped after one more non-improving epoch regardless, and load_best_model_at_end would have selected the same epoch-4 checkpoint. The adapter shipped in models/slm/adapter/ is that epoch-4 checkpoint, copied from models/slm/checkpoints/checkpoint-2768/ (trainer_state.json in that directory is the source of truth for this summary)."
+}
