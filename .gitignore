@@ -8,10 +8,3 @@ __pycache__/
 
 # Large intermediate training checkpoints — only the final adapter is kept.
 models/slm/checkpoints/
-
-# Personal reference material — not part of the assignment deliverables.
-PROJECT_UPDATE_LOG.md
-INTERVIEW_PREP.md
-IMPLEMENTATION_WALKTHROUGH.md
-GENERAL_AI_ML_INTERVIEW_PREP.md
-PROTOCOL_NINE_INTERVIEW_PREP.md

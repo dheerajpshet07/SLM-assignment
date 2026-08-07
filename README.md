@@ -131,13 +131,13 @@ We value correct experimental design, leakage prevention, reproducibility, thoug
 
 ## Follow-up interview
 
-Be prepared for a 45-minute discussion covering:
+  Be prepared for a 45-minute discussion covering:
 
-- why the model improved or failed to improve over the baseline;
-- how you would handle new categories or multi-label tools;
-- calibration and abstention for high-risk predictions;
-- production monitoring and drift;
-- how you would reduce cost and latency without materially hurting macro F1.
+  - why the model improved or failed to improve over the baseline;
+  - how you would handle new categories or multi-label tools;
+  - calibration and abstention for high-risk predictions;
+  - production monitoring and drift;
+  - how you would reduce cost and latency without materially hurting macro F1.
 
 ---
 
